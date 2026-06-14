@@ -3,6 +3,10 @@ import { Subscriber } from '../models/subscriber.model.js';
 // Helper regex to validate email format
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+/**
+ * Add a new subscriber to the waitlist
+ * POST /subscribers
+ */
 export const createSubscriber = async (req, res, next) => {
   try {
     const { email } = req.body;
@@ -10,8 +14,7 @@ export const createSubscriber = async (req, res, next) => {
     // 1. Validation: check if email is provided
     if (!email) {
       return res.status(400).json({
-        success: false,
-        message: 'Email is required'
+        error: 'Email is required'
       });
     }
 
@@ -19,8 +22,7 @@ export const createSubscriber = async (req, res, next) => {
     const trimmedEmail = email.trim().toLowerCase();
     if (!emailRegex.test(trimmedEmail)) {
       return res.status(400).json({
-        success: false,
-        message: 'Invalid email format'
+        error: 'Invalid email format'
       });
     }
 
@@ -34,11 +36,10 @@ export const createSubscriber = async (req, res, next) => {
       data: newSubscriber
     });
   } catch (error) {
-    // Catch unique constraint violation from SQLite
+    // Catch unique constraint violation from SQLite (email duplication)
     if (error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
       return res.status(400).json({
-        success: false,
-        message: 'Email already exists'
+        error: 'Subscriber already exists'
       });
     }
     
@@ -48,7 +49,8 @@ export const createSubscriber = async (req, res, next) => {
 };
 
 /**
- * Optional handler to get all subscribers (great for debugging or building dashboard)
+ * Get all subscribers
+ * GET /subscribers
  */
 export const getAllSubscribers = async (req, res, next) => {
   try {
@@ -56,6 +58,58 @@ export const getAllSubscribers = async (req, res, next) => {
     return res.status(200).json({
       success: true,
       data: subscribers
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Get a specific subscriber by ID
+ * GET /subscribers/:id
+ */
+export const getSubscriberById = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const subscriber = Subscriber.findById(id);
+
+    if (!subscriber) {
+      return res.status(404).json({
+        error: 'Subscriber not found'
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: subscriber
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Delete a specific subscriber by ID
+ * DELETE /subscribers/:id
+ */
+export const deleteSubscriber = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    
+    // Check if subscriber exists first
+    const subscriber = Subscriber.findById(id);
+    if (!subscriber) {
+      return res.status(404).json({
+        error: 'Subscriber not found'
+      });
+    }
+
+    // Delete row
+    Subscriber.delete(id);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Subscriber deleted successfully'
     });
   } catch (error) {
     next(error);

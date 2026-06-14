@@ -53,5 +53,19 @@ export const Subscriber = {
       ORDER BY created_at DESC
     `);
     return stmt.all();
+  },
+
+  /**
+   * Delete a subscriber by ID
+   * @param {number|string} id - Subscriber database ID
+   * @returns {number} The number of rows deleted (0 or 1)
+   */
+  delete(id) {
+    const stmt = db.prepare(`
+      DELETE FROM subscribers
+      WHERE id = ?
+    `);
+    const info = stmt.run(id);
+    return info.changes;
   }
 };
