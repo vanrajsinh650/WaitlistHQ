@@ -17,6 +17,7 @@ const db = new Database(dbPath, {
 
 // Enable WAL mode for better performance and concurrency
 db.pragma('journal_mode = WAL');
+db.pragma('foreign_keys = ON');
 
 // Create the tables if they don't exist
 const initializeDatabase = () => {
@@ -27,6 +28,28 @@ const initializeDatabase = () => {
       status TEXT DEFAULT 'active',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS campaigns (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      subject TEXT NOT NULL,
+      content TEXT NOT NULL,
+      status TEXT DEFAULT 'draft',
+      send_at DATETIME,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS campaign_deliveries (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      campaign_id INTEGER NOT NULL,
+      subscriber_id INTEGER NOT NULL,
+      status TEXT DEFAULT 'pending',
+      sent_at DATETIME,
+      error_message TEXT,
+      FOREIGN KEY (campaign_id) REFERENCES campaigns(id) ON DELETE CASCADE,
+      FOREIGN KEY (subscriber_id) REFERENCES subscribers(id) ON DELETE CASCADE
     );
   `;
   
