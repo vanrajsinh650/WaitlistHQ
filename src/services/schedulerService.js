@@ -2,6 +2,7 @@ import cron from 'node-cron';
 import { Campaign } from '../models/campaign.model.js';
 import { Subscriber } from '../models/subscriber.model.js';
 import { sendRawEmail } from './emailService.js';
+import config from '../config/env.js';
 
 // Setup background processing
 const processScheduledCampaigns = async () => {
@@ -20,20 +21,41 @@ const processScheduledCampaigns = async () => {
       // 1. Mark campaign as sent immediately to prevent concurrent cron ticks from double-processing
       Campaign.updateStatus(campaign.id, 'sent');
 
-      // 2. Fetch all subscribers
-      const subscribers = Subscriber.findAll();
+      // 2. Fetch active subscribers only
+      const subscribers = Subscriber.findActive();
       
       if (subscribers.length === 0) {
-        console.log(`[Scheduler] No subscribers found in database. Skipped dispatching campaign ID ${campaign.id}.`);
+        console.log(`[Scheduler] No active subscribers found in database. Skipped dispatching campaign ID ${campaign.id}.`);
         continue;
       }
 
-      console.log(`[Scheduler] Dispatching campaign ID ${campaign.id} to ${subscribers.length} subscriber(s)...`);
+      console.log(`[Scheduler] Dispatching campaign ID ${campaign.id} to ${subscribers.length} active subscriber(s)...`);
 
       for (const subscriber of subscribers) {
         try {
-          // Send raw campaign content directly
-          await sendRawEmail(subscriber.email, campaign.subject, campaign.content);
+          // Personalize campaign content per subscriber
+          const token = subscriber.unsubscribe_token || '';
+          const unsubscribeUrl = `${config.baseUrl}/unsubscribe/${token}`;
+
+          let personalizedContent = campaign.content;
+          personalizedContent = personalizedContent.replace(/{{email}}/g, subscriber.email);
+          personalizedContent = personalizedContent.replace(/{{unsubscribeUrl}}/g, unsubscribeUrl);
+          personalizedContent = personalizedContent.replace(/{{unsubscribeToken}}/g, token);
+
+          // Append a compliant unsubscribe footer if it is not present in the content
+          if (!personalizedContent.includes(unsubscribeUrl)) {
+            personalizedContent += `
+              <br><br>
+              <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;">
+              <p style="font-size: 12px; color: #9ca3af; text-align: center; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                You are receiving this because you subscribed to our waitlist. 
+                <a href="${unsubscribeUrl}" style="color: #4f46e5; text-decoration: underline;">Unsubscribe</a>
+              </p>
+            `;
+          }
+
+          // Send personalized campaign content
+          await sendRawEmail(subscriber.email, campaign.subject, personalizedContent);
 
           // Log successful delivery relationship
           Campaign.createDelivery({

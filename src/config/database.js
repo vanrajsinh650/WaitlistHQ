@@ -1,6 +1,7 @@
 import Database from 'better-sqlite3';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import crypto from 'crypto';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -55,6 +56,28 @@ const initializeDatabase = () => {
   
   db.exec(schema);
   console.log('Database tables initialized successfully.');
+
+  // Migration: Add unsubscribe_token column to subscribers if it doesn't exist
+  const columns = db.pragma('table_info(subscribers)');
+  const hasTokenColumn = columns.some(col => col.name === 'unsubscribe_token');
+  if (!hasTokenColumn) {
+    db.exec('ALTER TABLE subscribers ADD COLUMN unsubscribe_token TEXT;');
+    console.log('Added unsubscribe_token column to subscribers table.');
+
+    // Populate existing subscribers with secure random tokens
+    const subscribers = db.prepare('SELECT id FROM subscribers WHERE unsubscribe_token IS NULL').all();
+    if (subscribers.length > 0) {
+      const updateStmt = db.prepare('UPDATE subscribers SET unsubscribe_token = ? WHERE id = ?');
+      const transaction = db.transaction((list) => {
+        for (const sub of list) {
+          const token = crypto.randomBytes(24).toString('hex');
+          updateStmt.run(token, sub.id);
+        }
+      });
+      transaction(subscribers);
+      console.log(`Populated unsubscribe tokens for ${subscribers.length} existing subscriber(s).`);
+    }
+  }
 };
 
 // Initialize schema on startup

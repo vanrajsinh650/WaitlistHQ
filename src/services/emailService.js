@@ -1,5 +1,6 @@
 import config from '../config/env.js';
 import { compileTemplate } from '../utils/templateCompiler.js';
+import { Subscriber } from '../models/subscriber.model.js';
 
 /**
  * Send a raw HTML email using Resend or mock logger
@@ -63,7 +64,18 @@ export const sendRawEmail = async (toEmail, subject, htmlContent) => {
  */
 export const sendTemplateEmail = async (toEmail, subject, templateName, context = {}) => {
   try {
-    const htmlContent = await compileTemplate(templateName, context);
+    // Look up subscriber to get their unsubscribe token
+    const subscriber = Subscriber.findByEmail(toEmail);
+    const token = subscriber ? subscriber.unsubscribe_token : '';
+    const unsubscribeUrl = `${config.baseUrl}/unsubscribe/${token}`;
+
+    const enrichedContext = {
+      unsubscribeUrl,
+      unsubscribeToken: token,
+      ...context
+    };
+
+    const htmlContent = await compileTemplate(templateName, enrichedContext);
     return sendRawEmail(toEmail, subject, htmlContent);
   } catch (error) {
     console.error(`[Email Service Error] Failed to compile template ${templateName} for ${toEmail}:`, error.message);

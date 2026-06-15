@@ -17,6 +17,7 @@ const config = {
   isTest: process.env.NODE_ENV === 'test',
   resendApiKey: process.env.RESEND_API_KEY,
   fromEmail: process.env.FROM_EMAIL || 'WaitlistHQ <onboarding@resend.dev>',
+  baseUrl: process.env.BASE_URL || 'http://localhost:3000',
 };
 
 // Simple validation
