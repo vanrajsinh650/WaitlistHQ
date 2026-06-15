@@ -4,6 +4,7 @@ import healthRoutes from './healthRoutes.js';
 import subscriberRoutes from './subscriberRoutes.js';
 import campaignRoutes from './campaignRoutes.js';
 import unsubscribeRoutes from './unsubscribeRoutes.js';
+import analyticsRoutes from './analyticsRoutes.js';
 
 const router = Router();
 
@@ -14,6 +15,7 @@ router.get('/', rootIndex);
 router.use('/health', healthRoutes);
 router.use('/subscribers', subscriberRoutes);
 router.use('/campaigns', campaignRoutes);
+router.use('/analytics', analyticsRoutes);
 router.use('/', unsubscribeRoutes);
 
 export default router;
