@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WaitlistHQ Update</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f9fafb;
+      margin: 0;
+      padding: 0;
+      color: #111827;
+    }
+    .container {
+      max-width: 600px;
+      margin: 40px auto;
+      background: #ffffff;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      border: 1px solid #e5e7eb;
+    }
+    .header {
+      background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+      padding: 30px 20px;
+      text-align: center;
+    }
+    .header h1 {
+      color: #ffffff;
+      margin: 0;
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+    }
+    .content {
+      padding: 40px 30px;
+      line-height: 1.6;
+    }
+    .content h2 {
+      font-size: 20px;
+      font-weight: 700;
+      margin-top: 0;
+      color: #111827;
+    }
+    .content p {
+      color: #4b5563;
+      font-size: 16px;
+      margin-bottom: 24px;
+    }
+    .badge {
+      display: inline-block;
+      background-color: #fef3c7;
+      color: #d97706;
+      padding: 6px 12px;
+      border-radius: 9999px;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+    .update-card {
+      background-color: #f9fafb;
+      border-left: 4px solid #10b981;
+      padding: 16px;
+      margin-bottom: 24px;
+      border-radius: 0 8px 8px 0;
+    }
+    .update-card h3 {
+      margin: 0 0 8px 0;
+      font-size: 16px;
+      color: #111827;
+      font-weight: 700;
+    }
+    .update-card p {
+      margin: 0;
+      font-size: 14px;
+      color: #4b5563;
+    }
+    .btn {
+      display: inline-block;
+      background-color: #10b981;
+      color: #ffffff;
+      padding: 12px 24px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 15px;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .footer {
+      background-color: #f3f4f6;
+      padding: 24px;
+      text-align: center;
+      border-top: 1px solid #e5e7eb;
+    }
+    .footer p {
+      margin: 0;
+      color: #9ca3af;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>WaitlistHQ</h1>
+    </div>
+    <div class="content">
+      <span class="badge">Project Update</span>
+      <h2>Hi {{name}},</h2>
+      <p>We've got some exciting news to share regarding your queue status and our development progress.</p>
+      
+      <div class="update-card">
+        <h3>{{updateTitle}}</h3>
+        <p>{{updateMessage}}</p>
+      </div>
+
+      <p>Click the button below to view your personalized dashboard and check your spot in real time:</p>
+      <a href="{{dashboardUrl}}" class="btn" style="color: #ffffff;">View Dashboard</a>
+
+      <p>Thank you for your patience and support!</p>
+      <p>Best regards,<br>The WaitlistHQ Team</p>
+    </div>
+    <div class="footer">
+      <p>© 2026 WaitlistHQ. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>
