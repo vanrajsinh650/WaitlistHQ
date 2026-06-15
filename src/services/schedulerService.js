@@ -3,6 +3,7 @@ import { Campaign } from '../models/campaign.model.js';
 import { Subscriber } from '../models/subscriber.model.js';
 import { sendRawEmail } from './emailService.js';
 import config from '../config/env.js';
+import logger from '../utils/logger.js';
 
 // Setup background processing
 const processScheduledCampaigns = async () => {
@@ -13,10 +14,10 @@ const processScheduledCampaigns = async () => {
       return; // Nothing to process
     }
 
-    console.log(`[Scheduler] Found ${pendingCampaigns.length} pending campaign(s) ready to send.`);
+    logger.info(`[Scheduler] Found ${pendingCampaigns.length} pending campaign(s) ready to send.`);
 
     for (const campaign of pendingCampaigns) {
-      console.log(`[Scheduler] Starting processing for campaign: "${campaign.title}" (ID: ${campaign.id})`);
+      logger.info(`[Scheduler] Campaign started: "${campaign.title}" (ID: ${campaign.id})`);
 
       // 1. Mark campaign as sent immediately to prevent concurrent cron ticks from double-processing
       Campaign.updateStatus(campaign.id, 'sent');
@@ -25,11 +26,11 @@ const processScheduledCampaigns = async () => {
       const subscribers = Subscriber.findActive();
       
       if (subscribers.length === 0) {
-        console.log(`[Scheduler] No active subscribers found in database. Skipped dispatching campaign ID ${campaign.id}.`);
+        logger.warn(`[Scheduler] No active subscribers found in database. Skipped dispatching campaign ID ${campaign.id}.`);
         continue;
       }
 
-      console.log(`[Scheduler] Dispatching campaign ID ${campaign.id} to ${subscribers.length} active subscriber(s)...`);
+      logger.info(`[Scheduler] Dispatching campaign ID ${campaign.id} to ${subscribers.length} active subscriber(s)...`);
 
       for (const subscriber of subscribers) {
         try {
@@ -65,7 +66,7 @@ const processScheduledCampaigns = async () => {
             sentAt: new Date().toISOString()
           });
         } catch (error) {
-          console.error(`[Scheduler Error] Failed to deliver campaign ID ${campaign.id} to subscriber ID ${subscriber.id}:`, error.message);
+          logger.error(`[Scheduler Error] Failed to deliver campaign ID ${campaign.id} to subscriber ID ${subscriber.id}: ${error.message}`, error);
           
           // Log failed delivery relationship
           Campaign.createDelivery({
@@ -78,19 +79,19 @@ const processScheduledCampaigns = async () => {
         }
       }
 
-      console.log(`[Scheduler] Completed processing for campaign: "${campaign.title}" (ID: ${campaign.id})`);
+      logger.info(`[Scheduler] Campaign completed successfully: "${campaign.title}" (ID: ${campaign.id})`);
     }
   } catch (error) {
-    console.error('[Scheduler Critical Error] Error processing scheduled campaigns:', error.message);
+    logger.error(`[Scheduler Critical Error] Error processing scheduled campaigns: ${error.message}`, error);
   }
 };
 
 // Start the Cron Job: Run once every minute
 const schedulerJob = cron.schedule('* * * * *', () => {
-  console.log('[Scheduler] Ticking: Checking for scheduled campaigns...');
+  logger.debug('[Scheduler] Ticking: Checking for scheduled campaigns...');
   processScheduledCampaigns();
 });
 
-console.log('[Scheduler Service] Scheduler initialized. Cron job set to process pending campaigns every minute.');
+logger.info('[Scheduler Service] Scheduler initialized. Cron job set to process pending campaigns every minute.');
 
 export default schedulerJob;

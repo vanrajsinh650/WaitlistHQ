@@ -1,6 +1,7 @@
 import config from '../config/env.js';
 import { compileTemplate } from '../utils/templateCompiler.js';
 import { Subscriber } from '../models/subscriber.model.js';
+import logger from '../utils/logger.js';
 
 /**
  * Send a raw HTML email using Resend or mock logger
@@ -12,16 +13,9 @@ import { Subscriber } from '../models/subscriber.model.js';
 export const sendRawEmail = async (toEmail, subject, htmlContent) => {
   // Fallback if Resend API key is not configured (mock mode)
   if (!config.resendApiKey || config.resendApiKey === 're_your_api_key_here') {
-    console.log('\n=========================================');
-    console.log('  [MOCK EMAIL SERVICE] Raw Email Dispatch');
-    console.log(`  From:    ${config.fromEmail}`);
-    console.log(`  To:      ${toEmail}`);
-    console.log(`  Subject: ${subject}`);
-    console.log('  Status:  MOCK SENT (No RESEND_API_KEY configured)');
-    console.log('  Content Preview (Snippet):');
+    logger.info(`[MOCK EMAIL SERVICE] Raw Email Dispatch | From: ${config.fromEmail} | To: ${toEmail} | Subject: ${subject}`);
     const cleanSnippet = htmlContent.replace(/\s+/g, ' ').substring(0, 300);
-    console.log(`    ${cleanSnippet}...`);
-    console.log('=========================================\n');
+    logger.debug(`[MOCK EMAIL SERVICE] Content Preview: ${cleanSnippet}...`);
     return { mock: true, success: true };
   }
 
@@ -46,10 +40,10 @@ export const sendRawEmail = async (toEmail, subject, htmlContent) => {
       throw new Error(data.message || `Failed to send email. Resend status code: ${response.status}`);
     }
 
-    console.log(`[Email Service] Raw email sent successfully to ${toEmail}. ID: ${data.id}`);
+    logger.info(`[Email Service] Raw email sent successfully to ${toEmail}. ID: ${data.id}`);
     return { success: true, id: data.id };
   } catch (error) {
-    console.error(`[Email Service Error] Failed to dispatch raw email to ${toEmail}:`, error.message);
+    logger.error(`[Email Service Error] Failed to dispatch raw email to ${toEmail}: ${error.message}`, error);
     throw error;
   }
 };
@@ -78,7 +72,7 @@ export const sendTemplateEmail = async (toEmail, subject, templateName, context 
     const htmlContent = await compileTemplate(templateName, enrichedContext);
     return sendRawEmail(toEmail, subject, htmlContent);
   } catch (error) {
-    console.error(`[Email Service Error] Failed to compile template ${templateName} for ${toEmail}:`, error.message);
+    logger.error(`[Email Service Error] Failed to compile template ${templateName} for ${toEmail}: ${error.message}`, error);
     throw error;
   }
 };

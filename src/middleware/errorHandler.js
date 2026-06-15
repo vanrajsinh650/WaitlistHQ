@@ -1,22 +1,17 @@
 import config from '../config/env.js';
+import logger from '../utils/logger.js';
 
 export const errorHandler = (err, req, res, next) => {
   const statusCode = err.statusCode || 500;
   const message = err.message || 'Internal Server Error';
 
   const response = {
-    status: 'error',
-    statusCode,
-    message,
+    error: message, // Standard error payload pattern returning { "error": "..." }
     ...(config.isDevelopment && { stack: err.stack }),
   };
 
-  // Log the error for servers
-  if (config.isProduction) {
-    console.error(`[Error] ${statusCode} - ${message}`);
-  } else {
-    console.error(err);
-  }
+  // Log structured server error
+  logger.error(`[Server Error] ${statusCode} - ${message} | Route: ${req.method} ${req.originalUrl}`, err);
 
   res.status(statusCode).json(response);
 };

@@ -1,27 +1,27 @@
 import app from './app.js';
 import config from './config/env.js';
+import logger from './utils/logger.js';
 import './services/schedulerService.js'; // Start background campaign processing scheduler
 
 const server = app.listen(config.port, () => {
-  console.log(`=========================================`);
-  console.log(`  Server is running in ${config.nodeEnv} mode`);
-  console.log(`  Listening at http://localhost:${config.port}`);
-  console.log(`=========================================`);
+  logger.info(`=========================================`);
+  logger.info(`Server is running in ${config.nodeEnv} mode`);
+  logger.info(`Listening at http://localhost:${config.port}`);
+  logger.info(`=========================================`);
 });
 
 // Graceful Shutdown Handler
 const shutdown = (signal) => {
-  console.log(`\nReceived ${signal}. Starting graceful shutdown...`);
+  logger.warn(`Received ${signal}. Starting graceful shutdown...`);
   
   server.close(() => {
-    console.log('HTTP server closed.');
-    // Close other resources (e.g. db) here
+    logger.info('HTTP server closed.');
     process.exit(0);
   });
 
   // Force close after 10s if shutdown hangs
   setTimeout(() => {
-    console.error('Forced shutdown due to timeout.');
+    logger.error('Forced shutdown due to timeout.');
     process.exit(1);
   }, 10000);
 };
@@ -31,14 +31,12 @@ process.on('SIGINT', () => shutdown('SIGINT'));
 
 // Uncaught exceptions
 process.on('uncaughtException', (err) => {
-  console.error('UNCAUGHT EXCEPTION! Shutting down...');
-  console.error(err);
+  logger.error('UNCAUGHT EXCEPTION! Shutting down...', err);
   process.exit(1);
 });
 
 // Unhandled rejections
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('UNHANDLED REJECTION! Shutting down...');
-  console.error(reason);
+  logger.error('UNHANDLED REJECTION! Shutting down...', new Error(reason));
   process.exit(1);
 });
