@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Welcome to WaitlistHQ</title>
+  <title>Thanks for joining WaitlistHQ</title>
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -16,79 +16,56 @@
       max-width: 600px;
       margin: 40px auto;
       background: #ffffff;
-      border-radius: 16px;
+      border-radius: 12px;
       overflow: hidden;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
       border: 1px solid #e5e7eb;
     }
     .header {
-      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-      padding: 40px 20px;
+      background-color: #4f46e5;
+      padding: 32px 20px;
       text-align: center;
     }
     .header h1 {
       color: #ffffff;
       margin: 0;
-      font-size: 28px;
-      font-weight: 800;
-      letter-spacing: -0.025em;
+      font-size: 24px;
+      font-weight: 700;
     }
     .content {
-      padding: 40px 30px;
-      line-height: 1.6;
-    }
-    .content h2 {
-      font-size: 20px;
-      font-weight: 700;
-      margin-top: 0;
-      color: #1f2937;
+      padding: 32px 28px;
+      line-height: 1.7;
     }
     .content p {
-      color: #4b5563;
-      font-size: 16px;
-      margin-bottom: 24px;
+      color: #374151;
+      font-size: 15px;
+      margin-bottom: 16px;
     }
-    .badge {
-      display: inline-block;
-      background-color: #e0e7ff;
-      color: #4f46e5;
-      padding: 6px 12px;
-      border-radius: 9999px;
-      font-size: 14px;
-      font-weight: 600;
-      margin-bottom: 20px;
-    }
-    .queue-box {
+    .highlight {
       background-color: #f3f4f6;
-      border: 1px dashed #d1d5db;
-      border-radius: 8px;
-      padding: 16px;
-      text-align: center;
-      margin-bottom: 24px;
+      border-left: 3px solid #4f46e5;
+      padding: 12px 16px;
+      margin: 20px 0;
+      border-radius: 4px;
     }
-    .queue-box span {
-      display: block;
-      color: #6b7280;
+    .highlight p {
+      margin: 0;
+      color: #4b5563;
       font-size: 14px;
-      font-weight: 500;
-      text-transform: uppercase;
-      margin-bottom: 4px;
-    }
-    .queue-box strong {
-      color: #4f46e5;
-      font-size: 24px;
-      font-weight: 800;
     }
     .footer {
-      background-color: #f3f4f6;
-      padding: 24px;
+      background-color: #f9fafb;
+      padding: 20px 28px;
       text-align: center;
       border-top: 1px solid #e5e7eb;
     }
     .footer p {
-      margin: 0;
+      margin: 4px 0;
       color: #9ca3af;
-      font-size: 13px;
+      font-size: 12px;
+    }
+    .footer a {
+      color: #6b7280;
+      text-decoration: underline;
     }
   </style>
 </head>
@@ -98,25 +75,19 @@
       <h1>WaitlistHQ</h1>
     </div>
     <div class="content">
-      <span class="badge">Registration Confirmed</span>
-      <h2>You're on the list! 🎉</h2>
       <p>Hi there,</p>
-      <p>Thank you for signing up. We've added <strong>{{email}}</strong> to our priority queue. You are officially in line to receive early access to the most advanced email automation platform ever built.</p>
-      
-      <div class="queue-box">
-        <span>Your Waitlist Position</span>
-        <strong>{{queueNumber}}</strong>
+      <p>Thanks for joining our waitlist. We have added <strong>{{email}}</strong> to our list and you will be among the first to know when we launch.</p>
+
+      <div class="highlight">
+        <p>What happens next: We will send you occasional updates about our progress. No spam, just real updates.</p>
       </div>
 
-      <p>We will keep you updated with progress, behind-the-scenes previews, and notify you as soon as your spot is ready.</p>
+      <p>If you have any questions, feel free to reply to this email. We read every message.</p>
       <p>Best regards,<br>The WaitlistHQ Team</p>
     </div>
     <div class="footer">
-      <p>© 2026 WaitlistHQ. All rights reserved.</p>
-      <p style="margin-top: 8px; font-size: 12px; color: #9ca3af;">
-        You are receiving this because you signed up for early access. 
-        <a href="{{unsubscribeUrl}}" style="color: #4f46e5; text-decoration: underline;">Unsubscribe</a>
-      </p>
+      <p>You received this email because you signed up at WaitlistHQ.</p>
+      <p><a href="{{unsubscribeUrl}}">Unsubscribe</a> if you no longer wish to receive updates.</p>
     </div>
   </div>
 </body>

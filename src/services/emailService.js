@@ -1,55 +1,104 @@
+import nodemailer from 'nodemailer';
 import config from '../config/env.js';
 import { compileTemplate } from '../utils/templateCompiler.js';
 import { Subscriber } from '../models/subscriber.model.js';
 import logger from '../utils/logger.js';
 
+// --- Gmail Transporter Setup ---
+let transporter = null;
+
 /**
- * Send a raw HTML email using Resend or mock logger
+ * Initialize the Nodemailer transporter with Gmail credentials
+ */
+const getTransporter = () => {
+  if (!transporter) {
+    transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: config.email,
+        pass: config.appPassword
+      }
+    });
+    logger.info(`[Email Service] Gmail transporter initialized for ${config.email}`);
+  }
+  return transporter;
+};
+
+/**
+ * Strip HTML tags to produce a plain-text version of an email.
+ * This ensures every email has both text and html parts,
+ * which is critical for avoiding spam filters.
+ * @param {string} html - The HTML content
+ * @returns {string} Plain text version
+ */
+const htmlToPlainText = (html) => {
+  return html
+    .replace(/<br\s*\/?>/gi, '\n')           // <br> → newline
+    .replace(/<\/p>/gi, '\n\n')              // </p> → double newline
+    .replace(/<\/h[1-6]>/gi, '\n\n')         // </h1-6> → double newline
+    .replace(/<\/li>/gi, '\n')               // </li> → newline
+    .replace(/<li[^>]*>/gi, '  - ')          // <li> → bullet
+    .replace(/<\/tr>/gi, '\n')               // </tr> → newline
+    .replace(/<\/td>/gi, '\t')               // </td> → tab
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')  // remove <style> blocks
+    .replace(/<[^>]+>/g, '')                 // strip remaining tags
+    .replace(/&nbsp;/g, ' ')                 // &nbsp; → space
+    .replace(/&amp;/g, '&')                  // &amp; → &
+    .replace(/&lt;/g, '<')                   // &lt; → <
+    .replace(/&gt;/g, '>')                   // &gt; → >
+    .replace(/&#39;/g, "'")                  // &#39; → '
+    .replace(/&quot;/g, '"')                 // &quot; → "
+    .replace(/\n{3,}/g, '\n\n')              // collapse excess newlines
+    .trim();
+};
+
+/**
+ * Send an email using Gmail (Nodemailer) with both text and HTML parts.
+ * Sending both parts is essential to pass spam filters.
  * @param {string} toEmail - Recipient email address
  * @param {string} subject - Email subject line
- * @param {string} htmlContent - Custom HTML body content
+ * @param {string} htmlContent - HTML body content
  * @returns {Promise<object>} Status of email delivery
  */
 export const sendRawEmail = async (toEmail, subject, htmlContent) => {
-  // Fallback if Resend API key is not configured (mock mode)
-  if (!config.resendApiKey || config.resendApiKey === 're_your_api_key_here') {
-    logger.info(`[MOCK EMAIL SERVICE] Raw Email Dispatch | From: ${config.fromEmail} | To: ${toEmail} | Subject: ${subject}`);
+  // Fallback if Gmail credentials are not configured (mock mode)
+  if (!config.email || !config.appPassword) {
+    logger.info(`[MOCK EMAIL SERVICE] Raw Email Dispatch | To: ${toEmail} | Subject: ${subject}`);
     const cleanSnippet = htmlContent.replace(/\s+/g, ' ').substring(0, 300);
     logger.debug(`[MOCK EMAIL SERVICE] Content Preview: ${cleanSnippet}...`);
     return { mock: true, success: true };
   }
 
   try {
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
+    const transport = getTransporter();
+
+    // Generate plain-text version from HTML (anti-spam best practice)
+    const plainText = htmlToPlainText(htmlContent);
+
+    const mailOptions = {
+      from: `WaitlistHQ <${config.email}>`,
+      to: toEmail,
+      subject: subject,
+      text: plainText,   // Plain-text version (spam filters check for this)
+      html: htmlContent,  // HTML version
       headers: {
-        'Authorization': `Bearer ${config.resendApiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        from: config.fromEmail,
-        to: toEmail,
-        subject: subject,
-        html: htmlContent
-      })
-    });
+        'X-Mailer': 'WaitlistHQ/1.0',
+        'List-Unsubscribe': `<${config.baseUrl}/unsubscribe>`,
+      }
+    };
 
-    const data = await response.json();
+    const info = await transport.sendMail(mailOptions);
 
-    if (!response.ok) {
-      throw new Error(data.message || `Failed to send email. Resend status code: ${response.status}`);
-    }
-
-    logger.info(`[Email Service] Raw email sent successfully to ${toEmail}. ID: ${data.id}`);
-    return { success: true, id: data.id };
+    logger.info(`[Email Service] Email sent successfully to ${toEmail}. MessageID: ${info.messageId}`);
+    return { success: true, messageId: info.messageId };
   } catch (error) {
-    logger.error(`[Email Service Error] Failed to dispatch raw email to ${toEmail}: ${error.message}`, error);
+    logger.error(`[Email Service Error] Failed to send email to ${toEmail}: ${error.message}`, error);
     throw error;
   }
 };
 
 /**
- * Send a templated email using Resend or mock logger
+ * Send a templated email using Gmail (Nodemailer)
  * @param {string} toEmail - Recipient email address
  * @param {string} subject - Email subject line
  * @param {string} templateName - Name of template (e.g., 'welcome')
@@ -85,11 +134,10 @@ export const sendTemplateEmail = async (toEmail, subject, templateName, context 
 export const sendWelcomeEmail = async (toEmail) => {
   return sendTemplateEmail(
     toEmail,
-    'Welcome to WaitlistHQ! 🎉',
+    'Thanks for joining the WaitlistHQ waitlist',
     'welcome',
     {
-      email: toEmail,
-      queueNumber: '#482' // Dynamic placeholder for now
+      email: toEmail
     }
   );
 };

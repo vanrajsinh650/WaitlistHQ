@@ -15,8 +15,10 @@ const config = {
   isProduction: process.env.NODE_ENV === 'production',
   isDevelopment: process.env.NODE_ENV === 'development',
   isTest: process.env.NODE_ENV === 'test',
-  resendApiKey: process.env.RESEND_API_KEY,
-  fromEmail: process.env.FROM_EMAIL || 'WaitlistHQ <onboarding@resend.dev>',
+  // Gmail / Nodemailer Configuration
+  email: process.env.EMAIL,
+  appPassword: process.env.APP_PASSWORD,
+  fromEmail: process.env.EMAIL || 'noreply@example.com',
   baseUrl: process.env.BASE_URL || 'http://localhost:3000',
   rateLimitWindowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10), // 15 mins
   rateLimitMaxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10),
