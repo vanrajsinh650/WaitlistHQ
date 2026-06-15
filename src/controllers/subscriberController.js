@@ -1,4 +1,5 @@
 import { Subscriber } from '../models/subscriber.model.js';
+import { sendWelcomeEmail } from '../services/emailService.js';
 
 // Helper regex to validate email format
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -29,7 +30,12 @@ export const createSubscriber = async (req, res, next) => {
     // 3. Database operations
     const newSubscriber = Subscriber.create(trimmedEmail);
 
-    // 4. Return success response
+    // 4. Send welcome email (asynchronous, non-blocking)
+    sendWelcomeEmail(trimmedEmail).catch((error) => {
+      console.error(`[Silent Email Failure] Failed to send welcome email to ${trimmedEmail}:`, error.message);
+    });
+
+    // 5. Return success response
     return res.status(201).json({
       success: true,
       message: 'Subscriber added successfully',
