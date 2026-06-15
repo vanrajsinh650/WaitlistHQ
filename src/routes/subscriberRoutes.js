@@ -5,11 +5,12 @@ import {
   getSubscriberById, 
   deleteSubscriber 
 } from '../controllers/subscriberController.js';
+import { registrationLimiter } from '../middleware/rateLimiter.js';
 
 const router = Router();
 
 // POST /subscribers
-router.post('/', createSubscriber);
+router.post('/', registrationLimiter, createSubscriber);
 
 // GET /subscribers
 router.get('/', getAllSubscribers);

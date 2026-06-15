@@ -18,6 +18,9 @@ const config = {
   resendApiKey: process.env.RESEND_API_KEY,
   fromEmail: process.env.FROM_EMAIL || 'WaitlistHQ <onboarding@resend.dev>',
   baseUrl: process.env.BASE_URL || 'http://localhost:3000',
+  rateLimitWindowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10), // 15 mins
+  rateLimitMaxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10),
+  logLevel: process.env.LOG_LEVEL || 'info',
 };
 
 // Simple validation

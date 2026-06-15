@@ -1,8 +1,12 @@
 import express from 'express';
 import routes from './routes/index.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
+import { globalLimiter } from './middleware/rateLimiter.js';
 
 const app = express();
+
+// Global rate limiting
+app.use(globalLimiter);
 
 // Parsers
 app.use(express.json());
