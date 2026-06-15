@@ -1,5 +1,6 @@
 import app from './app.js';
 import config from './config/env.js';
+import './services/schedulerService.js'; // Start background campaign processing scheduler
 
 const server = app.listen(config.port, () => {
   console.log(`=========================================`);

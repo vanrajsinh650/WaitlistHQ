@@ -98,5 +98,33 @@ export const Campaign = {
       ORDER BY cd.id ASC
     `);
     return stmt.all(campaignId);
+  },
+
+  /**
+   * Find all scheduled campaigns ready to be sent (send_at <= now)
+   * @returns {array} Pending campaigns
+   */
+  findPending() {
+    const now = new Date().toISOString();
+    const stmt = db.prepare(`
+      SELECT * FROM campaigns
+      WHERE status = 'scheduled' AND (send_at IS NULL OR send_at <= ?)
+    `);
+    return stmt.all(now);
+  },
+
+  /**
+   * Update campaign status
+   * @param {number|string} id - Campaign database ID
+   * @param {string} status - New status
+   * @returns {object} Write status result
+   */
+  updateStatus(id, status) {
+    const stmt = db.prepare(`
+      UPDATE campaigns
+      SET status = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `);
+    return stmt.run(status, id);
   }
 };
